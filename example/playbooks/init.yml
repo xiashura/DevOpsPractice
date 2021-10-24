@@ -1,0 +1,6 @@
+- hosts: kvm
+  remote_user: root
+  roles:
+    - role: update_packages 
+    - role: docker
+

@@ -15,7 +15,9 @@ provider "libvirt" {
 variable "vm_machines" {
   description = "Create machines with these names"
   type = list(string)
-  default = ["master01", "worker01", "worker02"]
+
+# default = ["master01", "worker01"]
+  default = ["master01"]
 }
 
 # We fetch the latest ubuntu release image from their mirrors
@@ -27,10 +29,19 @@ resource "libvirt_volume" "ubuntu" {
   format = "qcow2"
 }
 
+
+resource "libvirt_volume" "ubuntu_resize" {
+  name = "${var.vm_machines[count.index]}-resize.qcow2"
+  count = length(var.vm_machines)
+  base_volume_id = libvirt_volume.ubuntu[count.index].id
+  pool           = "default"
+  size           = 5368709120
+}
+
 # Create a network for our VMs
 resource "libvirt_network" "vm_network" {
    name = "vm_network"
-   addresses = ["10.224.1.0/24"]
+   addresses = ["10.225.1.0/24"]
    dhcp {
         enabled = true
    }
@@ -42,7 +53,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
           pool = "default"
           user_data = "${data.template_file.user_data.rendered}"
           network_config = "${data.template_file.network_config.rendered}"
-        }
+}
 
 data "template_file" "user_data" {
   template = "${file("${path.module}/cloud_init.cfg")}"
@@ -57,8 +68,8 @@ data "template_file" "network_config" {
 resource "libvirt_domain" "ubuntu" {
   count = length(var.vm_machines)
   name = var.vm_machines[count.index]
-  memory = "2048"
-  vcpu = 2
+  memory = "4128"
+  vcpu = 4
 
   cloudinit = "${libvirt_cloudinit_disk.commoninit.id}"
 
@@ -80,8 +91,9 @@ resource "libvirt_domain" "ubuntu" {
   }
 
   disk {
-       volume_id = libvirt_volume.ubuntu[count.index].id
+       volume_id = libvirt_volume.ubuntu_resize[count.index].id
   }
+
   graphics {
     type = "vnc"
     listen_type = "address"
