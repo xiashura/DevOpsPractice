@@ -1,4 +1,3 @@
-
 terraform {
  required_version = ">= 0.13"
   required_providers {
@@ -12,35 +11,32 @@ provider "libvirt" {
   uri = "qemu:///system"
 }
 
-variable "vm_machines" {
-  description = "Create machines with these names"
-  type = list(string)
-
-# default = ["master01", "worker01"]
-  default = ["master01"]
+resource "libvirt_pool" "hosts" {
+	name = "hosts"
+	type = "dir"
+	path = "/tmp/terraform_hosts"
 }
 
-# We fetch the latest ubuntu release image from their mirrors
-resource "libvirt_volume" "ubuntu" {
-  name = "${var.vm_machines[count.index]}.qcow2"
-  count = length(var.vm_machines)
-  pool = "default"
-  source = "http://cloud-images.ubuntu.com/releases/bionic/release-20191008/ubuntu-18.04-server-cloudimg-amd64.img"
+
+resource "libvirt_volume" "hosts_volume" {
+  name = "${var.hosts[count.index].name}.qcow2"
+  count = length(var.hosts)
+  pool = libvirt_pool.hosts.name
+  source = var.hosts[count.index].source
   format = "qcow2"
 }
 
-
-resource "libvirt_volume" "ubuntu_resize" {
-  name = "${var.vm_machines[count.index]}-resize.qcow2"
-  count = length(var.vm_machines)
-  base_volume_id = libvirt_volume.ubuntu[count.index].id
-  pool           = "default"
-  size           = 5368709120
+resource "libvirt_volume" "hosts_volume_resize" {
+  name = "${var.hosts[count.index].name}_resize.qcow2"
+  count = length(var.hosts)
+  base_volume_id = libvirt_volume.hosts_volume[count.index].id
+  pool           = libvirt_pool.hosts.name
+  size           = var.hosts[count.index].size  
 }
 
 # Create a network for our VMs
-resource "libvirt_network" "vm_network" {
-   name = "vm_network"
+resource "libvirt_network" "hosts_net" {
+   name = "hosts_net"
    addresses = ["10.225.1.0/24"]
    dhcp {
         enabled = true
@@ -49,10 +45,10 @@ resource "libvirt_network" "vm_network" {
 
 # Use CloudInit to add our ssh-key to the instance
 resource "libvirt_cloudinit_disk" "commoninit" {
-          name = "commoninit.iso"
-          pool = "default"
-          user_data = "${data.template_file.user_data.rendered}"
-          network_config = "${data.template_file.network_config.rendered}"
+    name = "commoninit.iso"
+    pool = libvirt_pool.hosts.name
+    user_data = "${data.template_file.user_data.rendered}"
+    network_config = "${data.template_file.network_config.rendered}"
 }
 
 data "template_file" "user_data" {
@@ -63,19 +59,17 @@ data "template_file" "network_config" {
   template = "${file("${path.module}/network_config.cfg")}"
 }
 
+resource "libvirt_domain" "hosts" {
+  count = length(var.hosts)
+  name = var.hosts[count.index].name
+  memory = var.hosts[count.index].memory  
+  vcpu = var.hosts[count.index].vcpu
 
-# Create the machine
-resource "libvirt_domain" "ubuntu" {
-  count = length(var.vm_machines)
-  name = var.vm_machines[count.index]
-  memory = "4128"
-  vcpu = 4
-
-  cloudinit = "${libvirt_cloudinit_disk.commoninit.id}"
+  cloudinit = libvirt_cloudinit_disk.commoninit.id
 
   network_interface {
-    network_id = "${libvirt_network.vm_network.id}"
-    network_name = "vm_network"
+    network_id = libvirt_network.hosts_net.id
+    network_name = libvirt_network.hosts_net.name
   }
 
   console {
@@ -91,18 +85,20 @@ resource "libvirt_domain" "ubuntu" {
   }
 
   disk {
-       volume_id = libvirt_volume.ubuntu_resize[count.index].id
+       volume_id = libvirt_volume.hosts_volume_resize[count.index].id
   }
 
   graphics {
-    type = "vnc"
+    type = "spice"
     listen_type = "address"
-    autoport = "true"
+    autoport = true
   }
 }
 
-
-output "ip" {
-  value = libvirt_domain.ubuntu.*.network_interface.0.addresses
+output "ips" {
+  value = libvirt_domain.hosts.*.network_interface.0.addresses
 }
 
+output "domain" {
+  value = libvirt_domain.hosts.*.name
+}
