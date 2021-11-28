@@ -1,20 +1,13 @@
 
 ---
-
-
 - name: "add dns"
   shell: 
-    cmd: > 
-      echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null 
+    cmd: | 
+      sed -i -e 's/#DNS=/DNS=8.8.8.8/g' /etc/systemd/resolved.conf 
+      systemctl restart systemd-resolved
 
-- name: "update packages"
-  shell:
-    cmd: >
-      apt -y update   
+- name: Update apt packages
+  apt:
+    update_cache: 'yes'
   when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu' 
 
-- name: "install python apt"
-  shell: 
-    cmd: > 
-       apt -y install python-apt
-  when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu' 
