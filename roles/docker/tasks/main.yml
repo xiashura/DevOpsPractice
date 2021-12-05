@@ -1,5 +1,40 @@
 ---
 # tasks file for docker
-- name: "test ecoh"
-  shell: 
-    cmd: "echo test"
+
+# - include: arch.yml
+#   when: ansible_os_family == 'Archlinux'
+
+- include: deb.yml
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu'
+
+# - include: redhat.yml
+#   when: ansible_os_family == 'RedHat'
+
+- name: "upload docker images"
+  copy:
+    src: "{{item.src}}"
+    dest: /root/
+    mode: 0444
+    force: yes
+  with_items: "{{ upload_images }}"
+  when: upload_images is defined
+
+  #TODO test
+- name: "install docker images"
+  shell:
+    cmd: "docker import < {{ item.src }} {{ item.name }}"
+  with_items: "{{ upload_images }}"
+  when: upload_images is defined
+
+- name: "rm images compressions"
+  shell:
+    cmd: rm {{item}}
+  with_items: "{{ upload_images }}"
+  when: upload_images is defined
+
+  #debricate 
+  #- name: "rename docker images"
+  #shell:
+  #  cmd: "docker tag {{ item.name }} {{ item.target_name }}"
+  #with_items: "{{ images_tag }}"
+  #when: images_tag is defined
