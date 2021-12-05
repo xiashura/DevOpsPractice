@@ -5,6 +5,7 @@
     cmd: | 
       sed -i -e 's/#DNS=/DNS=8.8.8.8/g' /etc/systemd/resolved.conf 
       systemctl restart systemd-resolved
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu' 
 
 - name: Update apt packages
   apt:
