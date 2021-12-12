@@ -1,4 +1,8 @@
 
+- name: 
+  package_facts:
+    manager: "apt"
+
 - name: Update apt packages
   apt:
     update_cache: 'yes'
@@ -10,6 +14,9 @@
       - apt-transport-https
       - ca-certificates
       - curl
+  when: "'apt-transport-https' not in ansible_facts.packages or 
+  'ca-certificates' not in ansible_facts.packages or 
+  'curl' not in ansible_facts.packages"
 
 - name: Add docker key for repository sources 
   ansible.builtin.apt_key:
@@ -28,6 +35,10 @@
       - docker-ce 
       - docker-ce-cli
       - containerd.io
+  when: "'docker-ce' not in ansible_facts.packages or 
+  'docker-ce-cli' not in ansible_facts.packages or 
+  'containerd.io' not in ansible_facts.packages"
+
 
 - name: "install docker-compose"
   shell:
@@ -39,3 +50,4 @@
     cmd: >
       curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose &&
       chmod +x /usr/local/bin/docker-compose
+  when: "'docker-compose' not in ansible_facts.packages"
