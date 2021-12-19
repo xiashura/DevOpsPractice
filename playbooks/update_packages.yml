@@ -1,0 +1,4 @@
+- hosts: "{{host}}"
+  roles:
+    - role: update_packages 
+    - role: python_packages

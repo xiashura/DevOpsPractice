@@ -1,0 +1,13 @@
+- name: "check docker"
+  package_facts:
+    manager: "auto"
+- name: "install docker"
+  shell:
+    cmd: pacman -S docker
+  when:
+    - "'docker' not in ansible_facts.packages"
+- name: "install docker-compose"
+  shell:
+    cmd: pacman -S docker-compose
+  when:
+    - "'docker-compose' not in ansible_facts.packages"
