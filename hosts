@@ -1,6 +1,9 @@
 
 
-[kvm]
-10.225.1.239
+
+[dev]
+node-master ansible_host=10.225.1.200 ansible_user=root
+node-worker ansible_host=10.225.1.48 ansible_user=root
+
 
 
