@@ -1,0 +1,38 @@
+
+- name: kubeadm init
+  shell: 
+    cmd: kubeadm init --pod-network-cidr=10.244.0.0/16 | wc -l
+  when: task == "init"
+
+- name: kubeclt add config
+  shell:
+    cmd: |
+      mkdir -p $HOME/.kube
+      cp /etc/kubernetes/admin.conf $HOME/.kube/config
+      chown $(id -u):$(id -g) $HOME/.kube/config
+  when: task == "init"
+
+- name: kubeadm token generate
+  shell: 
+    cmd: kubeadm token generate
+  register: token
+  when: task == "token"
+
+- name: kubeadm create generate
+  shell: 
+    cmd:  kubeadm token create {{token.stdout}} --print-join-command --ttl=0
+  register: token
+  when: task == "token"
+
+- name: "Add K8S Token"
+  add_host:
+    name: "K8S_TOKEN_HOLDER"
+    token: "{{ token.stdout }}"
+  when: task == "token"
+
+- name: kubeadm join node
+  shell:
+    cmd: "{{hostvars['K8S_TOKEN_HOLDER']['token']}}"
+  when: task == "join"
+
+

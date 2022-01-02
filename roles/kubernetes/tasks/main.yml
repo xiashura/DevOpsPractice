@@ -1,0 +1,55 @@
+
+- name: cheack exists folder config docker
+  stat:
+    path: /etc/docker
+  register: docker_path
+
+- name: create folder docker config
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: '0755'
+  when: not docker_path.stat.exists 
+
+- name: cheack exists docker config
+  stat: 
+    path: /etc/docker/daemon.json
+  register: docker_config
+
+- name: "create file docker config"
+  ansible.builtin.file:
+    path: /etc/docker/daemon.json
+    state: touch
+  when: not docker_config.stat.exists 
+
+- name: cheack exec-opts exists systemd 
+  shell:
+    cmd: cat /etc/docker/daemon.json | grep "exec-opts" | wc -l 
+  register: native_ststemd
+
+- name: "add native systemd"
+  shell: 
+    cmd: |
+       echo '{"exec-opts":["native.cgroupdriver=systemd"]}' > /etc/docker/daemon.json
+  when: native_ststemd.stdout == "0" and not docker_config.stat.exists
+
+- name: append native systemd 
+  shell:
+    cmd: | 
+       echo "$(jq '. += {"exec-opts": ["native.cgroupdriver=systemd"]}' /etc/docker/daemon.json)" > /etc/docker/daemon.json
+  when: native_ststemd.stdout == "0" and  docker_config.stat.exists 
+
+- name: reload systemd service docker
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker
+
+- name: reload systemd service kubelet
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: kubelet
+
+
+
