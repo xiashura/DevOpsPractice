@@ -4,6 +4,8 @@ stdenv.mkDerivation {
 
 	RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}"; 
 
+  KUBECONFIG = "./.kube/config";
+
   name = "terraform";
   buildInputs = [
 		rustup
@@ -12,6 +14,7 @@ stdenv.mkDerivation {
     rustfmt
     cargo
     ansible
+    kubectl
     terraform_0_15
     nodejs
     pipenv
