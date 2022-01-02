@@ -8,11 +8,15 @@ show_virt:
 	@sudo virsh list
 
 show_ips:
-	@cd ./terraform/kvm && terraform refresh &&  terraform output | grep 10.225.1 | sed 's/"//' | sed 's/",//' | tr -s '[:space:]' "\n"
+	@terraform -chdir=terraform/kvm refresh  &&  terraform -chdir=terraform/kvm output | grep 10.225.1 | sed 's/"//' | sed 's/",//' | tr -s '[:space:]' "\n"
 
 
 up_kvm:
-	@cd ./terraform/kvm && terraform plan && terraform apply 
+	@terraform -chdir=terraform/kvm plan  &&  terraform -chdir=terraform/kvm apply 
 
 down_kvm:
-	@cd ./terraform/kvm && terraform destroy
+	@terraform -chdir=terraform/kvm destroy
+
+
+
+	
