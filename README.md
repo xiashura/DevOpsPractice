@@ -6,5 +6,9 @@
   * aws prod 
 * ansible 
 * k8s
-* metrics (grafana/prometheus)
+  * docker_registroy
+* metrics (grafana/prometheus)/ELK
 
+<h1> Tasks: </h1> 
+
+- [ ] set hostname cloud image
