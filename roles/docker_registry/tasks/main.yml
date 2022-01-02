@@ -1,8 +1,7 @@
-- name: init
+- name: add docker which out tls
+  shell: 
+    cmd: |
+      echo "$(jq '. += {"insecure-registries" : ["{{docker_registry_host}}"]}' /etc/docker/daemon.json)" > /etc/docker/daemon.json 
   
-  tags:
-    - master
 
-"insecure-registries":[
-          "10.225.1.200:5000"
-  ],
+  
