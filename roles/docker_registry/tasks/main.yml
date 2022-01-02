@@ -1,0 +1,8 @@
+- name: init
+  
+  tags:
+    - master
+
+"insecure-registries":[
+          "10.225.1.200:5000"
+  ],
