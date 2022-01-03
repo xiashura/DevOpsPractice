@@ -21,24 +21,25 @@ variable "hosts" {
 		{
 			name = "master-node"
 			source = "http://cloud-images-archive.ubuntu.com/releases/focal/release-20200423/ubuntu-20.04-server-cloudimg-amd64.img"
-   	 	memory = "4128"
+   	 	memory = "4048"
    	  vcpu = 4
-    	size = 10737418240
+    	size = 20737418240
 		},
 		{
-			name = "node-1"
+			name = "worker-node-1"
 			source = "http://cloud-images-archive.ubuntu.com/releases/focal/release-20200423/ubuntu-20.04-server-cloudimg-amd64.img"
    	 	memory = "2048"
    	  vcpu = 2
     	size = 10737418240
-		},
-		{ 
-		name = "node-2" 
-		source = "http://cloud-images.ubuntu.com/releases/bionic/release-20191008/ubuntu-18.04-server-cloudimg-amd64.img" 
-		memory = "2048" 
-		vcpu = 2 
-		size = 10737418240 
-		} 
+		}
+		# ,
+		# { 
+		# name = "node-2" 
+		# source = "http://cloud-images.ubuntu.com/releases/bionic/release-20191008/ubuntu-18.04-server-cloudimg-amd64.img" 
+		# memory = "2048" 
+		# vcpu = 2 
+		# size = 10737418240 
+		# } 
 	]
 }
 

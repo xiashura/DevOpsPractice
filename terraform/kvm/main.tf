@@ -47,12 +47,15 @@ resource "libvirt_network" "hosts_net" {
 resource "libvirt_cloudinit_disk" "commoninit" {
     name = "commoninit.iso"
     pool = libvirt_pool.hosts.name
-    user_data = "${data.template_file.user_data.rendered}"
+
+    count = length(var.hosts)
+    user_data = "${data.template_file.user_data[count.index].rendered}"
     network_config = "${data.template_file.network_config.rendered}"
 }
 
 data "template_file" "user_data" {
-  template = "${file("${path.module}/cloud_init.cfg")}"
+  count = length(var.hosts)
+  template = "${templatefile("${path.module}/cloud_init.cfg",var.hosts[count.index])}"
 }
 
 data "template_file" "network_config" {
@@ -65,7 +68,7 @@ resource "libvirt_domain" "hosts" {
   memory = var.hosts[count.index].memory  
   vcpu = var.hosts[count.index].vcpu
 
-  cloudinit = libvirt_cloudinit_disk.commoninit.id
+  cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id
 
   network_interface {
     network_id = libvirt_network.hosts_net.id
@@ -96,9 +99,17 @@ resource "libvirt_domain" "hosts" {
 }
 
 output "ips" {
-  value = libvirt_domain.hosts.*.network_interface.0.addresses
+  value = libvirt_domain.hosts.*.network_interface.0.addresses.0
 }
 
 output "domain" {
   value = libvirt_domain.hosts.*.name
 }
+
+output "hosts" {
+  value = join("\n", toset([ 
+    for host in libvirt_domain.hosts : format("%s %s", host.name , host.network_interface.0.addresses.0)
+  ]) 
+  )
+}
+
