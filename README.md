@@ -11,4 +11,4 @@
 
 <h1> Tasks: </h1> 
 
-- [ ] set hostname cloud image
+- [x] set hostname cloud image
