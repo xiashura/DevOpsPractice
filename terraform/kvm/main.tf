@@ -18,20 +18,31 @@ resource "libvirt_pool" "hosts" {
 }
 
 
+module "config" {
+
+  source = "cloudposse/config/yaml"
+
+  map_config_local_base_path = "../../host_vars"
+
+  map_config_paths = [
+    "resources.yaml",
+  ]
+}
+
 resource "libvirt_volume" "hosts_volume" {
-  name   = "${var.hosts[count.index].name}.qcow2"
-  count  = length(var.hosts)
+  name   = "${local.hosts[count.index].name}.qcow2"
+  count  = length(local.hosts)
   pool   = libvirt_pool.hosts.name
-  source = var.hosts[count.index].source
+  source = local.hosts[count.index].source
   format = "qcow2"
 }
 
 resource "libvirt_volume" "hosts_volume_resize" {
-  name           = "${var.hosts[count.index].name}_resize.qcow2"
-  count          = length(var.hosts)
+  name           = "${local.hosts[count.index].name}_resize.qcow2"
+  count          = length(local.hosts)
   base_volume_id = libvirt_volume.hosts_volume[count.index].id
   pool           = libvirt_pool.hosts.name
-  size           = var.hosts[count.index].size
+  size           = local.hosts[count.index].size
 }
 
 # Create a network for our VMs
@@ -45,17 +56,17 @@ resource "libvirt_network" "hosts_net" {
 
 # Use CloudInit to add our ssh-key to the instance
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name = "commoninit_${var.hosts[count.index].name}.iso"
+  name = "commoninit_${local.hosts[count.index].name}.iso"
   pool = libvirt_pool.hosts.name
 
-  count          = length(var.hosts)
+  count          = length(local.hosts)
   user_data      = data.template_file.user_data[count.index].rendered
   network_config = data.template_file.network_config.rendered
 }
 
 data "template_file" "user_data" {
-  count    = length(var.hosts)
-  template = templatefile("${path.module}/cloud_init.cfg", var.hosts[count.index])
+  count    = length(local.hosts)
+  template = templatefile("${path.module}/cloud_init.cfg", local.hosts[count.index])
 }
 
 data "template_file" "network_config" {
@@ -63,10 +74,10 @@ data "template_file" "network_config" {
 }
 
 resource "libvirt_domain" "hosts" {
-  count  = length(var.hosts)
-  name   = var.hosts[count.index].name
-  memory = var.hosts[count.index].memory
-  vcpu   = var.hosts[count.index].vcpu
+  count  = length(local.hosts)
+  name   = local.hosts[count.index].name
+  memory = local.hosts[count.index].memory
+  vcpu   = local.hosts[count.index].vcpu
 
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id
 
