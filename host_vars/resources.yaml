@@ -1,0 +1,5 @@
+
+
+import:
+  - ./master-node-1-dev/resource
+  - ./master-node-2-dev/resource

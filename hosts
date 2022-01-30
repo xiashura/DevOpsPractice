@@ -1,9 +1,18 @@
 
+[master-nodes-dev]
+master-node-[1:5]-dev 
 
+[master-nodes-preprod]
+master-node-[1:5]-preprod 
 
-[dev]
-node-master ansible_host=10.225.1.229 ansible_user=root
-node-worker ansible_host=10.225.1.48 ansible_user=root
+[master-nodes-prod]
+master-node-[1:5]-prod 
 
+[worker-nodes-dev]
+worker-node-[1:5]-dev 
 
+[worker-nodes-preprod]
+worker-node-[1:5]-preprod 
 
+[worker-nodes-prod]
+worker-node-[1:5]-prod 

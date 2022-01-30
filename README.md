@@ -18,6 +18,7 @@ ansible + python + terraform
   - [ ] create variables vm/vds example <br>
     resource.yml 
     ```yaml
+      instance:
         name: "master-node"
         source: "http://cloud-images-archive.ubuntu.com/releases/focal/release-20200423/ubuntu-20.04-server-cloudimg-amd64.img"
         memory: "4048"
