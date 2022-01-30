@@ -2,13 +2,17 @@ with (import <nixpkgs> {});
 
 stdenv.mkDerivation {
 
-	RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}"; 
-
   KUBECONFIG = "./.kube/config";
+  
+  shellHook = '' 
+    pip install --user jinja2
+  '';
 
-  name = "terraform";
+  name = "dev-ops-practics";
   buildInputs = [
     ansible
+    python39
+    python39Packages.pip
     kubectl
     terraform_0_15
     terraform-providers.libvirt
