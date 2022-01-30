@@ -15,30 +15,35 @@ ansible + python + terraform
 - [x] create role docker-registry/kubernetes 
 - [x] set hostname cloud image
 - [ ] init dynamic hosts include terraform 
-  - [ ] create variables vm/vds example <br>
+  - [x] create variables vm/vds example <br>
     resource.yml 
     ```yaml
-      instance:
-        name: "master-node"
-        source: "http://cloud-images-archive.ubuntu.com/releases/focal/release-20200423/ubuntu-20.04-server-cloudimg-amd64.img"
-        memory: "4048"
-        vcpu: 4
-        size: 20737418240
-        group: master-nodes-dev
-      }
+        master-node-1-dev:
+          - name: "master-node-1-dev"
+            source: "http://cloud-images-archive.ubuntu.com/releases/focal/release-20200423/ubuntu-20.04-server-cloudimg-amd64.img"
+            memory: "2048"
+            vcpu: 2
+            size: 10737418240
+            configuration: 
+              name: simple
+              passwd: 191351wq
+              ssh-keys:
+                "ssh-rsa key"
+              }
     ```
     output_vars.yml
-  - [ ] dynamic vars in include terraform
+  - [x] dynamic vars in include terraform
     ```yaml 
     ansible_host: ip_terraform vm/vds
     domain: "example.com"
     ```
-  - [ ] variables for roles and playbooks <br>
+  - [x] variables for roles and playbooks <br>
     var.yml
     ```yml
     swap:
       size: 2048
     ```
+  - [ ] create python scripts for generate output_vars.yml
 - [ ] set static groups 
 - [ ] ci/cd 
 - [ ] metrics
