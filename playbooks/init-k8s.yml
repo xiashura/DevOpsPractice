@@ -1,0 +1,6 @@
+- hosts: "{{host}}"
+  roles:
+    - role: packages/update 
+    - role: packages/python
+    - role: packages/docker
+    - role: packages/k8s
