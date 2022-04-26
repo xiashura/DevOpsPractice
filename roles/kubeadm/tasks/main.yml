@@ -1,8 +1,14 @@
+- name: check kubeadm certs
+  stat:
+    path: /root/.kube/config
+  register: kubeadm_certs
 
 - name: kubeadm init
-  shell: 
-    cmd: kubeadm init --pod-network-cidr=10.244.0.0/16 | wc -l
-  when: task == "init"
+  shell:
+    cmd: kubeadm init --apiserver-cert-extra-sans={{apiserver_cert_extra_sans}} --pod-network-cidr=10.244.0.0/16 | wc -l
+  when:
+    - "'master-nodes' in group_names"
+    - "not kubeadm_certs.stat.exists"
 
 - name: kubeclt add config
   shell:
@@ -10,29 +16,29 @@
       mkdir -p $HOME/.kube
       cp /etc/kubernetes/admin.conf $HOME/.kube/config
       chown $(id -u):$(id -g) $HOME/.kube/config
-  when: task == "init"
+  when:
+    - "'master-nodes' in group_names"
+    - "not kubeadm_certs.stat.exists"
 
-- name: kubeadm token generate
-  shell: 
-    cmd: kubeadm token generate
-  register: token
-  when: task == "token"
-
-- name: kubeadm create generate
-  shell: 
-    cmd:  kubeadm token create {{token.stdout}} --print-join-command --ttl=0
-  register: token
-  when: task == "token"
-
-- name: "Add K8S Token"
-  add_host:
-    name: "K8S_TOKEN_HOLDER"
-    token: "{{ token.stdout }}"
-  when: task == "token"
-
-- name: kubeadm join node
+- name: create join command
   shell:
-    cmd: "{{hostvars['K8S_TOKEN_HOLDER']['token']}}"
-  when: task == "join"
+    cmd: |
+      kubeadm token create --print-join-command --ttl=0
+  register: join_command
+  when: "'master-nodes' in group_names"
 
+- name: join workers nodes
+  debug:
+    msg: "{{join_command}}"
 
+- name: append token to hosts groups
+  add_host:
+    name: "{{item}}"
+    token: "{{ join_command.stdout }}"
+  loop: "{{groups['worker-nodes-dev']}}"
+  when: "'master-nodes' in group_names"
+
+- name: join workers nodes
+  shell:
+    cmd: "{{token}}"
+  when: "'worker-nodes' in group_names"
