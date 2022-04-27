@@ -14,7 +14,7 @@ ansible + python + terraform
 
 - [x] create role docker-registry/kubernetes 
 - [x] set hostname cloud image
-- [ ] init dynamic hosts include terraform 
+- [x] init dynamic hosts include terraform 
   - [x] create variables vm/vds example <br>
     resource.yml 
     ```yaml
@@ -29,7 +29,6 @@ ansible + python + terraform
               passwd: 191351wq
               ssh-keys:
                 "ssh-rsa key"
-              }
     ```
     output_vars.yml
   - [x] dynamic vars in include terraform
@@ -43,15 +42,17 @@ ansible + python + terraform
     swap:
       size: 2048
     ```
-  - [ ] create python scripts for generate output_vars.yml
+  - [x] create python scripts for generate output_vars.yml
 - [ ] set static groups 
 - [ ] ci/cd 
 - [ ] metrics
 
 terraform + nixos
 - [ ] create build img for cloud/vm
+  - [x] single nixos kvm 
+  - [ ] multiple nixos kvm
+  - [ ] deploy img nixos in cloud
 - [ ] create resource docker-registry/kubernetes 
 - [ ] configuration kubernetes 
 - [ ] ci/cd 
 - [ ] metrics
-
