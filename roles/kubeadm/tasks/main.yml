@@ -3,11 +3,18 @@
     path: /root/.kube/config
   register: kubeadm_certs
 
+
+- name: fix bug https://github.com/containerd/containerd/issues/4581
+  shell:
+    cmd: | 
+      rm /etc/containerd/config.toml
+      systemctl restart containerd
+      
 - name: kubeadm init
   shell:
     cmd: kubeadm init --apiserver-cert-extra-sans={{apiserver_cert_extra_sans}} --pod-network-cidr=10.244.0.0/16 | wc -l
   when:
-    - "'master-nodes' in group_names"
+    - "group_name_master in group_names"
     - "not kubeadm_certs.stat.exists"
 
 - name: kubeclt add config
@@ -17,7 +24,7 @@
       cp /etc/kubernetes/admin.conf $HOME/.kube/config
       chown $(id -u):$(id -g) $HOME/.kube/config
   when:
-    - "'master-nodes' in group_names"
+    - "group_name_master in group_names"
     - "not kubeadm_certs.stat.exists"
 
 - name: create join command
@@ -25,7 +32,7 @@
     cmd: |
       kubeadm token create --print-join-command --ttl=0
   register: join_command
-  when: "'master-nodes' in group_names"
+  when: "group_name_master in group_names"
 
 - name: join workers nodes
   debug:
@@ -35,10 +42,10 @@
   add_host:
     name: "{{item}}"
     token: "{{ join_command.stdout }}"
-  loop: "{{groups['worker-nodes-dev']}}"
-  when: "'master-nodes' in group_names"
+  loop: "{{groups[group_name_worker]}}"
+  when: "group_name_master in group_names"
 
 - name: join workers nodes
   shell:
     cmd: "{{token}}"
-  when: "'worker-nodes' in group_names"
+  when: "group_name_worker in group_names"

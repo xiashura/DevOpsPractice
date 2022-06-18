@@ -1,8 +1,7 @@
-- hosts: kvm
-  remote_user: root
+- hosts: dev
   roles:
-    # - role: kubeadm_packages
-    # - role: kubeadm
-    - role: kubeadm/master
- 
-
+    - role: kubeadm
+      vars:
+        apiserver_cert_extra_sans: 192.168.0.102,109.194.163.242
+        group_name_master: master-nodes-dev
+        group_name_worker: worker-nodes-dev
